@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Image Classification App</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-image: url("{{ url_for('static', filename='v870-tang-36.jpg') }}");
+            background-size: cover;
+            background-color: #B0F7FD;
+            text-align: center;
+            margin: 0;
+            padding: 0;
+        }
+
+       
+        h1 {
+           padding: 5px;
+           margin: 5px;
+        }
+        .h00{
+            text-align: center;
+            font-size: 30px ;
+            color: #394d4f ;
+        }
+        .h01{
+            text-align: center;
+            font-size: 40px ;
+            color: #82b4b8 ;
+        }
+        .h02{
+            text-align: center;
+            font-size: 20px ;
+            color: #96d1d5 ;
+        }
+        .container {
+            max-width: 600px;
+            margin: 20px auto;
+           
+            padding: 20px;
+            border-radius: 20px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        
+        form {
+            margin-top: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        input[type="file"] {
+            margin-bottom: 10px;
+            
+            
+        }
+
+        button[type="submit"] {
+            background-color: #82b4b8;
+            color: #fff;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        button[type="submit"]:hover {
+            background-color: #3d595c;
+        }
+
+        .prediction-box {
+            border: 1px solid #333;
+            padding: 20px;
+            margin-top: 20px;
+            
+            border-radius: 20px;
+        }
+        .drop-container {
+
+            position: relative;
+            display: flex;
+            gap: 10px;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 200px;
+            padding: 20px;
+            border-radius: 10px;
+            border: 2px dashed #555;
+            color: #444;
+            cursor: pointer;
+            transition: background .2s ease-in-out, border .2s ease-in-out;
+          }
+          
+        .drop-container:hover {
+            background: #d8f0f1;
+            border-color: #111;
+          }
+
+        .drop-container:hover .drop-title {
+            color: #222;
+          }
+          
+        .drop-title {
+            color: #444;
+            font-size: 20px;
+            font-weight: bold;
+            text-align: center;
+            transition: color .2s ease-in-out;
+          }
+        .button{
+           padding: 5px;
+        }
+        
+    </style>
+</head>
+<body>
+    <header>
+        <h1 class="h00">Image </h1>
+        <h1 class="h01">Classification</h1>
+        <h1 class="h02">App</h1>
+    </header>
+
+    <div class="container">
+        
+        <!-- Display the uploaded image -->
+        <img id="uploaded-image" alt="Uploaded Image" style="max-width: 100%; display: none;">
+
+
+        <form action="/predict" method="post" enctype="multipart/form-data">
+            <span class="drop-title" onchange="displayImage(this);">Drop files here</span>
+            or
+            <input type="file" name="image" accept="image/*" onchange="displayImage(this);">
+            <button type="submit" class="fa fa-plus-square"><span class="button">Predict</span></button>
+        </form>
+
+        <div class="prediction-box" id="prediction-result">
+            <!-- Predicted Class and Confidence will be displayed here -->
+        </div>
+    </div>
+
+    <script>
+        const form = document.querySelector('form');
+        const resultDiv = document.getElementById('prediction-result');
+        const uploadedImage = document.getElementById('uploaded-image');
+
+        // Function to display the uploaded image
+        function displayImage(input) {
+            if (input.files && input.files[0]) {
+                const reader = new FileReader();
+                reader.onload = function (e) {
+                    uploadedImage.src = e.target.result;
+                    uploadedImage.style.display = 'block';
+                };
+                reader.readAsDataURL(input.files[0]);
+            }
+        }
+
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const formData = new FormData(form);
+            const response = await fetch('/predict', {
+                method: 'POST',
+                body: formData
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                resultDiv.innerHTML = `
+                    <p><strong>Predicted Class:</strong> ${data.class}</p>
+                    <p><strong>Confidence:</strong> ${data.confidence.toFixed(2)}</p>
+                `;
+            } else {
+                resultDiv.innerHTML = '<p>Failed to predict image.</p>';
+            }
+        });
+    </script>
+</body>
+</html>
